@@ -1,26 +1,244 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* TDM brand — from company profile decks */
+  --color-forest: #0f3527;
+  --color-pine: #1b5e43;
+  --color-fern: #2e7d5b;
+  --color-sage: #6ba58c;
+  --color-mint: #dfede6;
+  --color-cream: #f7f5ef;
+  --color-ink: #10241c;
+  --color-amber: #e8862d;
+  --color-plum: #453a75;
+
+  /* Body: Montserrat. Headings: Mont with Montserrat fallback —
+     drop licensed Mont .woff2 files into /public/fonts/ to activate Mont. */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Mont", var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Mont (commercial, Fontfabric) — loads only if the files exist in /public/fonts/.
+   Browsers silently fall back to Montserrat otherwise. */
+@font-face {
+  font-family: "Mont";
+  src: url("/fonts/Mont-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mont";
+  src: url("/fonts/Mont-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mont";
+  src: url("/fonts/Mont-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mont";
+  src: url("/fonts/Mont-Heavy.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+}
+
+html[dir="rtl"] {
+  --font-sans: var(--font-noto-ar), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-noto-ar), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+h1, h2 {
+  font-weight: 800;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  letter-spacing: 0;
+}
+
+/* Letterspaced small-caps kicker, per Deck A typography */
+.kicker {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+[dir="rtl"] .kicker {
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Motion system ---------- */
+
+/* Scroll reveal (driven by IntersectionObserver in <Reveal/>) */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0s);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Above-the-fold entrance (pure CSS, runs on load) */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-enter {
+  animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--enter-delay, 0s);
+}
+
+/* Infinite logo marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 45s linear infinite;
+  will-change: transform;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+[dir="rtl"] .marquee-track {
+  animation-direction: reverse;
+}
+
+/* Floating gradient blobs for dark heroes */
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(36px, -24px) scale(1.08);
+  }
+  66% {
+    transform: translate(-28px, 18px) scale(0.94);
+  }
+}
+.blob {
+  animation: blob-drift 16s ease-in-out infinite;
+  will-change: transform;
+}
+.blob-slow {
+  animation-duration: 22s;
+  animation-delay: -8s;
+}
+
+/* Animated gradient headline accent */
+@keyframes gradient-pan {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+.gradient-text {
+  background: linear-gradient(90deg, #6ba58c, #dfede6, #e8862d, #6ba58c);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 8s linear infinite;
+}
+
+/* Card hover lift */
+.card-lift {
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s ease;
+}
+.card-lift:hover {
+  transform: translateY(-5px);
+}
+
+/* Arrow nudge inside link cards */
+.group .arrow-nudge {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .arrow-nudge {
+  transform: translateX(4px);
+}
+[dir="rtl"] .group:hover .arrow-nudge {
+  transform: translateX(-4px);
+}
+
+/* FAQ answer entrance */
+details[open] .faq-answer {
+  animation: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Subtle diagonal brand ribbon (from the deck's "TDM ." motif) */
+.ribbon-bg {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(107, 165, 140, 0.06) 0px,
+    rgba(107, 165, 140, 0.06) 2px,
+    transparent 2px,
+    transparent 22px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .hero-enter,
+  .marquee-track,
+  .blob,
+  .gradient-text {
+    animation: none;
+  }
+  .card-lift:hover,
+  .group:hover .arrow-nudge {
+    transform: none;
+  }
 }
